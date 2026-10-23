@@ -475,6 +475,7 @@ html:not(.js) .ppanel + .ppanel { margin-top: 36px; }
 @media (max-width: 1040px) {
   .nav { display: none; }
   .menu-btn { display: inline-flex; }
+  .nav + .header__actions { margin-left: auto; }
   .grid--4, .grid--3 { grid-template-columns: repeat(2, 1fr); }
   .steps .step--3 { grid-column: 1 / -1; }
   .times ul { grid-template-columns: repeat(2, 1fr); }
