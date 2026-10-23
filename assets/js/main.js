@@ -16,17 +16,17 @@
   if (!S.previewMarkers) root.classList.add("no-markers");
 
   /* ---------------- Formatierung aus zentraler Datenquelle ---------------- */
-  function fmtPrice(key) {
-    var s = S.services[key];
-    if (!s || s.price == null) return ph(t("[Preis]", "[Price]"));
-    var n = Number.isInteger(s.price) ? String(s.price) : s.price.toFixed(2).replace(".", lang === "en" ? "." : ",");
-    if (lang === "en") return (s.from ? "from " : "") + "€" + n;
-    return (s.from ? "ab " : "") + n + " €";
+  var M = window.MHB;
+  function fmtPrice(p) {
+    var txt = M.price(p, lang);
+    return txt ? esc(txt) : ph(t("[Preis]", "[Price]"));
   }
-  function fmtDuration(key) {
-    var s = S.services[key];
-    if (!s || s.duration == null) return ph(t("[Dauer]", "[Duration]"));
-    return t("ca. " + s.duration + " Min.", "approx. " + s.duration + " min");
+  function fmtDuration(p) {
+    var txt = p ? M.duration(p.dur, lang) : "";
+    return txt ? esc(txt) : ph(t("[Dauer]", "[Duration]"));
+  }
+  function fmtRating() {
+    return lang === "en" ? String(S.rating.value) : String(S.rating.value).replace(".", ",");
   }
   function addressLine() {
     var a = S.address;
@@ -37,8 +37,13 @@
   }
 
   function fillData() {
-    $$("[data-price]").forEach(function (el) { el.innerHTML = fmtPrice(el.getAttribute("data-price")); });
-    $$("[data-duration]").forEach(function (el) { el.innerHTML = fmtDuration(el.getAttribute("data-duration")); });
+    $$("[data-price]").forEach(function (el) { el.innerHTML = fmtPrice(M.find(S, el.getAttribute("data-price"))); });
+    $$("[data-price-cat]").forEach(function (el) { el.innerHTML = fmtPrice(M.categoryFrom(S, el.getAttribute("data-price-cat"))); });
+    $$("[data-duration]").forEach(function (el) { el.innerHTML = fmtDuration(M.find(S, el.getAttribute("data-duration"))); });
+    $$(".js-rating-value").forEach(function (el) { el.textContent = fmtRating(); });
+    $$(".js-rating-count").forEach(function (el) { el.textContent = S.rating.count; });
+    $$(".stars--lg").forEach(function (el) { el.style.setProperty("--fill", (S.rating.value / 5 * 100) + "%"); });
+    renderPrices();
 
     var pay = S.payment && S.payment.length ? esc(S.payment.join(" · ")) : ph(t("[ZAHLUNGSARTEN]", "[PAYMENT METHODS]"));
     var payEl = $("#payment-methods"); if (payEl) payEl.innerHTML = pay;
@@ -53,7 +58,36 @@
 
     $$(".js-phone").forEach(function (el) { el.href = S.phone.href; });
     $$(".js-route").forEach(function (el) { el.href = mapsUrl(); });
-    var g = $("#google-link"); if (g) g.href = S.links.google || mapsUrl();
+    $$(".js-google").forEach(function (el) { el.href = S.links.google || mapsUrl(); });
+  }
+
+  /* ---------------- Preisliste mit Kategorie-Reitern ---------------- */
+  var activeCat = null;
+  function renderPrices() {
+    var box = $("#price-list");
+    if (!box) return;
+    box.innerHTML = M.renderPrices(S, lang, activeCat);
+    var tabs = $$(".ptab", box);
+    function select(tab, focus) {
+      activeCat = tab.id.replace("ptab-", "");
+      tabs.forEach(function (x) {
+        var on = x === tab;
+        x.setAttribute("aria-selected", String(on));
+        x.tabIndex = on ? 0 : -1;
+        $("#" + x.getAttribute("aria-controls")).setAttribute("data-active", String(on));
+      });
+      if (focus) tab.focus();
+      tab.scrollIntoView({ block: "nearest", inline: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { select(tab, false); });
+      tab.addEventListener("keydown", function (e) {
+        var n = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+        if (n == null) return;
+        e.preventDefault();
+        select(tabs[(n + tabs.length) % tabs.length], true);
+      });
+    });
   }
 
   /* ---------------- Öffnungszeiten & Status (Europe/Berlin) ---------------- */
@@ -165,14 +199,18 @@
     renderHours();
     setupBooking();
     syncMenuLabel();
+  }
+  // Sprachwahl nur nach aktiver Auswahl speichern (technisch notwendig für die gewünschte Funktion)
+  function chooseLang(next) {
+    applyLang(next);
     try { localStorage.setItem("mhb-lang", lang); } catch (e) { /* Speicher nicht verfügbar */ }
   }
 
   $$("[data-lang]").forEach(function (b) {
-    b.addEventListener("click", function () { applyLang(b.getAttribute("data-lang")); });
+    b.addEventListener("click", function () { chooseLang(b.getAttribute("data-lang")); });
   });
   $$("[data-lang-toggle]").forEach(function (b) {
-    b.addEventListener("click", function () { applyLang(lang === "de" ? "en" : "de"); });
+    b.addEventListener("click", function () { chooseLang(lang === "de" ? "en" : "de"); });
   });
 
   /* ---------------- Header, Fortschritt, mobile Leiste ---------------- */
@@ -187,7 +225,7 @@
     var max = document.documentElement.scrollHeight - window.innerHeight;
     progress.classList.toggle("is-visible", y > 120);
     bar.style.transform = "scaleX(" + (max > 0 ? Math.min(1, y / max) : 0) + ")";
-    var showBar = y > 560 && !document.body.classList.contains("is-locked");
+    var showBar = y > 560 && !document.body.classList.contains("is-locked") && !root.classList.contains("consent-open");
     mbar.classList.toggle("is-visible", showBar);
     $$("a", mbar).forEach(function (a) { a.tabIndex = showBar ? 0 : -1; });
     mbar.setAttribute("aria-hidden", String(!showBar));
@@ -285,6 +323,7 @@
     if (b.url) { direct.href = b.url; direct.hidden = false; }
     if (b.mode === "embed" && b.embedUrl) {
       load.hidden = false;
+      $("span", load).textContent = window.Consent && Consent.allowed("external") ? t("Kalender laden", "Load calendar") : t("Zustimmen & Kalender laden", "Accept & load calendar");
       text.textContent = t("Wähle deinen Wunschtermin direkt im Kalender.", "Pick your preferred slot right in the calendar.");
       note.hidden = false;
       note.innerHTML = t(
@@ -295,7 +334,10 @@
       text.textContent = t("Die Online-Buchung öffnet sich in einem neuen Tab.", "Online booking opens in a new tab.");
     }
   }
-  $("#cal-load").addEventListener("click", function () {
+  var calendarStarted = false;
+  function loadCalendar() {
+    if (calendarStarted) return;
+    calendarStarted = true;
     var b = S.booking;
     var cal = $("#calendar");
     var text = $("#cal-text");
@@ -313,6 +355,7 @@
       cal.classList.remove("is-loading");
       text.textContent = t("Der Kalender konnte nicht geladen werden. Öffne die Buchungsseite direkt oder ruf uns an.", "The calendar couldn't be loaded. Open the booking page directly or give us a call.");
       $("#cal-load").hidden = true;
+      calendarStarted = false;
     }, 15000);
     iframe.addEventListener("load", function () {
       if (done) return;
@@ -323,7 +366,20 @@
     });
     iframe.hidden = true;
     cal.appendChild(iframe);
+  }
+  var hasEmbed = function () { return S.booking.mode === "embed" && !!S.booking.embedUrl; };
+  $("#cal-load").addEventListener("click", function () {
+    // Der Klick auf „Zustimmen & Kalender laden“ ist die Einwilligung für externe Medien
+    if (window.Consent && !Consent.allowed("external")) Consent.grant("external");
+    loadCalendar();
   });
+  if (window.Consent) {
+    Consent.onChange(function (s) {
+      setupBooking();
+      if (s.external && hasEmbed()) loadCalendar();
+    });
+    if (Consent.allowed("external") && hasEmbed()) loadCalendar();
+  }
 
   /* ---------------- Rechtliche Overlays ---------------- */
   var openDialog = null;
