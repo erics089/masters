@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/img/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0C0B0F">
-<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
 <link rel="preload" href="assets/fonts/rajdhani-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" type="image/webp" imagesrcset="assets/img/herren-fade-640.webp 640w, assets/img/herren-fade-1200.webp 1200w" imagesizes="(max-width: 900px) 92vw, 520px">
@@ -54,24 +54,6 @@
     <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-    <!-- Original-Logo „MASTER'S – HAIR & BEAUTY“ (M aus geöffneter Schere), als Vektor nachgezeichnet -->
-    <symbol id="logo" viewBox="0 0 1130 300">
-      <g fill="none" stroke="currentColor" stroke-width="5.5" stroke-linejoin="miter">
-        <path d="M27 192V22L145 166M190 192V22L73 166"/>
-        <circle cx="66" cy="178" r="12"/><circle cx="151" cy="178" r="12"/>
-        <path d="M56 186 44 196M161 186 173 196" stroke-linecap="round"/>
-        <path d="M215 192 300 20 385 192"/>
-        <path d="M512 50C500 25 478 18 458 18C430 18 410 36 410 60C410 88 432 98 460 106C492 115 515 126 515 152C515 178 492 192 462 192C436 192 414 180 402 158"/>
-        <path d="M540 22H665M602.5 22V192"/>
-        <path d="M800 22H702V190H800M702 106H790"/>
-        <path d="M842 192V22H890C915 22 932 40 932 63C932 87 915 104 890 104H842M888 104 945 192"/>
-        <path d="M968 12C970 33 964 47 951 58" stroke-linecap="round"/>
-        <path d="M1097 50C1085 25 1063 18 1043 18C1015 18 995 36 995 60C995 88 1017 98 1045 106C1077 115 1100 126 1100 152C1100 178 1077 192 1047 192C1021 192 999 180 987 158"/>
-        <path d="M255 228H890M255 296H890" stroke-width="2.6"/>
-      </g>
-      <circle cx="108.8" cy="120" r="4" fill="currentColor"/>
-      <text x="586" y="276" text-anchor="middle" fill="currentColor" font-family="Barlow, Arial, sans-serif" font-size="40" letter-spacing="27">HAIR &amp; BEAUTY</text>
-    </symbol>
   </defs>
 </svg>
 
@@ -82,7 +64,7 @@
 <header class="header" id="top">
   <div class="header__bar">
     <a class="brand" href="#top" aria-label="Master's Hair &amp; Beauty – zum Seitenanfang" data-i18n-attr="aria-label:brandHome">
-      <svg class="brand__logo" viewBox="0 0 1130 300" aria-hidden="true"><use href="#logo"/></svg>
+      <img class="brand__logo" src="assets/img/logo-dark.png" width="1097" height="282" alt="">
     </a>
     <nav class="nav" aria-label="Hauptnavigation" data-i18n-attr="aria-label:navLabel">
       <a href="#leistungen" data-i18n="navServices">Leistungen</a>
@@ -509,7 +491,7 @@
     <div class="footer__top">
       <div class="footer__brand">
         <a class="brand brand--light" href="#top" aria-label="Master's Hair &amp; Beauty – zum Seitenanfang" data-i18n-attr="aria-label:brandHome">
-          <svg class="brand__logo" viewBox="0 0 1130 300" aria-hidden="true"><use href="#logo"/></svg>
+          <img class="brand__logo" src="assets/img/logo-light.png" width="1097" height="282" alt="">
         </a>
         <p data-i18n="footText">Friseur für Damen, Herren und Kids in München. Fades, Bart, Schnitt, Balayage und Farbe – mit Beratung und Liebe zum Detail.</p>
       </div>
